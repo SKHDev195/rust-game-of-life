@@ -1,3 +1,4 @@
+#[derive(Eq, Hash, PartialEq)]
 pub enum Cell {
     Dead,
     Alive,
