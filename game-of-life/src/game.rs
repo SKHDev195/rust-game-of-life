@@ -1,33 +1,43 @@
-use crate::{cell::Cell, cells::get_cell_neighbours, cells::CellsNeighbours};
-use core::num;
-use indexmap::{self, IndexMap};
+use crate::field;
+use crate::{cell::Cell, cells::get_cell_neighbours, cells::Cells};
+use std::collections::HashMap;
+use std::thread::sleep;
+use std::time::Duration;
+
+extern crate rand;
 use rand::Rng;
 
-enum GameStatus {
-    Stopped,
-    Paused,
-    Going,
-}
-
-fn fill_cells_neighbours(cells_number: &i32, x: &i32, y: &i32) -> CellsNeighbours {
-    let mut cn_map: IndexMap<Cell, [i32; 8]> = IndexMap::new();
+fn fill_cells_neighbours(x: &i32, y: &i32) -> Cells {
+    let mut cn_map: HashMap<i32, [i32; 8]> = HashMap::new();
     let num_of_cells: i32 = x * y;
-
+    let mut cells: Vec<Cell> = Vec::new();
     for i in 0..num_of_cells {
         let alive_chance: i32 = rand::thread_rng().gen_range(0..100);
         match alive_chance {
             ac if ac > 70 => {
-                cn_map.insert(Cell::Alive, get_cell_neighbours(i, x, y));
+                cells.push(Cell::Alive);
+                cn_map.insert(i, get_cell_neighbours(&i, x, y));
             }
             _ => {
-                cn_map.insert(Cell::Dead, get_cell_neighbours(i, x, y));
+                cells.push(Cell::Dead);
+                cn_map.insert(i, get_cell_neighbours(&i, x, y));
             }
         }
     }
 
-    let res = CellsNeighbours {
+    let res = Cells {
         cells_neighbours_map: cn_map,
+        game_cells: cells,
     };
 
     res
+}
+
+pub fn game_of_life(x: i32, y: i32) {
+    let mut cells = fill_cells_neighbours(&x, &y);
+    loop {
+        field::render_field(&cells.game_cells, &y);
+        field::update_field(&mut cells);
+        sleep(Duration::from_millis(100));
+    }
 }

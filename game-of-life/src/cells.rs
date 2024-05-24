@@ -1,8 +1,10 @@
-use crate::cell::Cell;
-use indexmap;
+use std::collections::HashMap;
 
-pub struct CellsNeighbours {
-    pub cells_neighbours_map: indexmap::IndexMap<Cell, [i32; 8]>,
+use crate::cell::Cell;
+
+pub struct Cells {
+    pub cells_neighbours_map: HashMap<i32, [i32; 8]>,
+    pub game_cells: Vec<Cell>,
 }
 
 pub fn get_cell_neighbours(i: &i32, x: &i32, y: &i32) -> [i32; 8] {

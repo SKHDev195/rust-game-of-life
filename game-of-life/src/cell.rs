@@ -14,5 +14,3 @@ pub fn show_cell(c: &Cell) {
         }
     }
 }
-
-pub fn update_cell(c: &Cell) {}

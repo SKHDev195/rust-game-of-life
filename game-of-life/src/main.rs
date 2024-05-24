@@ -4,5 +4,5 @@ mod field;
 mod game;
 
 fn main() {
-    println!("Hello, world!");
+    game::game_of_life(50, 50);
 }
