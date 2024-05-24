@@ -1,20 +1,42 @@
-use crate::cell::{self, Cell};
-use crate::cells::Cells;
+use crate::{
+    cell::{self, Cell},
+    cells::Cells,
+    messages::FieldMessages,
+};
+use iced::widget::{row, Row};
+
+pub struct Field {
+    pub(crate) x: i32,
+    pub(crate) y: i32,
+    pub(crate) cells: Cells,
+}
+
+impl Field {
+    fn update(&mut self, message: FieldMessages) {
+        update_field(&mut self.cells);
+    }
+
+    fn view(&self) -> Element<FieldMessages> {
+        let mut rows = Vec::new();
+        for i in 0..self.y {
+            rows.push();
+        }
+        column![rows]
+    }
+}
 
 pub fn render_field(cells: &Vec<Cell>, y: &i32) {
     for (i, cell) in cells.iter().enumerate() {
-        // Print the cell
-        cell::show_cell(cell);
+        cell::show_cell_basic(cell);
 
-        // Check if we need to print a newline
         if (i as i32 + 1) % *y == 0 {
             print!("\n");
         }
     }
-    println!(); // Ensure the last row ends with a newline
+    println!();
 }
 
-pub fn update_field(cells_neighbours: &mut Cells) {
+fn update_field(cells_neighbours: &mut Cells) {
     for i in 0..cells_neighbours.game_cells.len() {
         let index = i as i32;
         let alive_neighbours = get_alive_neighbours(cells_neighbours, &index);

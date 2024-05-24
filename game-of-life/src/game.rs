@@ -1,4 +1,4 @@
-use crate::field;
+use crate::field::{self, Field};
 use crate::{cell::Cell, cells::get_cell_neighbours, cells::Cells};
 use std::collections::HashMap;
 use std::thread::sleep;
@@ -35,9 +35,10 @@ fn fill_cells_neighbours(x: &i32, y: &i32) -> Cells {
 
 pub fn game_of_life(x: i32, y: i32) {
     let mut cells = fill_cells_neighbours(&x, &y);
+    let mut field = Field { x, y, cells };
     loop {
         field::render_field(&cells.game_cells, &y);
-        field::update_field(&mut cells);
+        field.update();
         sleep(Duration::from_millis(100));
     }
 }
