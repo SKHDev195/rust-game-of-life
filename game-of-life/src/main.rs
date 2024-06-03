@@ -1,8 +1,10 @@
 mod cell;
 mod cells;
 mod field;
-mod game;
+mod messages;
 
-fn main() {
-    game::game_of_life(50, 50);
+use field::Field;
+use iced::{Application, Settings};
+fn main() -> iced::Result {
+    Field::run(Settings::default())
 }
