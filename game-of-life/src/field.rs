@@ -1,9 +1,13 @@
-use crate::{
-    cell::{self, Cell},
-    cells::Cells,
-    messages::FieldMessages,
+use std::collections::HashMap;
+
+use crate::{cell::Cell, cells::get_cell_neighbours, cells::Cells, messages::FieldMessages};
+use iced::{
+    executor,
+    time::{self, Duration},
+    widget::{Column, Row},
+    Application, Command, Element, Sandbox, Subscription, Theme,
 };
-use iced::widget::{row, Row};
+use rand::Rng;
 
 pub struct Field {
     pub(crate) x: i32,
@@ -11,30 +15,64 @@ pub struct Field {
     pub(crate) cells: Cells,
 }
 
-impl Field {
-    fn update(&mut self, message: FieldMessages) {
+impl Application for Field {
+    type Executor = executor::Default;
+    type Message = FieldMessages;
+    type Theme = Theme;
+    type Flags = ();
+
+    fn new(_flags: ()) -> (Self, Command<FieldMessages>) {
+        let cells = fill_cells_neighbours(&12, &10);
+        let res = Self {
+            x: 12,
+            y: 10,
+            cells: cells,
+        };
+        (res, Command::none())
+    }
+
+    fn title(&self) -> String {
+        String::from("Game of Life")
+    }
+
+    fn update(&mut self, _message: FieldMessages) -> Command<FieldMessages> {
         update_field(&mut self.cells);
+        Command::none()
     }
 
     fn view(&self) -> Element<FieldMessages> {
         let mut rows = Vec::new();
-        for i in 0..self.y {
-            rows.push();
+        let mut start_index: usize = 0;
+        for _ in 0..self.y {
+            let end_index = start_index + self.x as usize;
+            let row_cells = &self.cells.game_cells[start_index..end_index];
+
+            let row =
+                Row::with_children(row_cells.iter().map(|cell| cell.view()).collect::<Vec<_>>());
+            rows.push(row.into());
+
+            start_index = end_index;
         }
-        column![rows]
+        Column::with_children(rows)
+            .align_items(iced::Alignment::Center)
+            .into()
+    }
+
+    fn subscription(&self) -> Subscription<FieldMessages> {
+        iced::time::every(Duration::from_millis(500)).map(|_| FieldMessages::Update)
     }
 }
 
-pub fn render_field(cells: &Vec<Cell>, y: &i32) {
-    for (i, cell) in cells.iter().enumerate() {
-        cell::show_cell_basic(cell);
+// pub fn render_field(cells: &Vec<Cell>, y: &i32) {
+//     for (i, cell) in cells.iter().enumerate() {
+//         cell::show_cell_basic(cell);
 
-        if (i as i32 + 1) % *y == 0 {
-            print!("\n");
-        }
-    }
-    println!();
-}
+//         if (i as i32 + 1) % *y == 0 {
+//             print!("\n");
+//         }
+//     }
+//     println!();
+// }
 
 fn update_field(cells_neighbours: &mut Cells) {
     for i in 0..cells_neighbours.game_cells.len() {
@@ -71,6 +109,32 @@ fn get_alive_neighbours(cells_neighbours: &Cells, index: &i32) -> i32 {
             }
         }
     }
+
+    res
+}
+
+fn fill_cells_neighbours(x: &i32, y: &i32) -> Cells {
+    let mut cn_map: HashMap<i32, [i32; 8]> = HashMap::new();
+    let num_of_cells: i32 = x * y;
+    let mut cells: Vec<Cell> = Vec::new();
+    for i in 0..num_of_cells {
+        let alive_chance: i32 = rand::thread_rng().gen_range(0..100);
+        match alive_chance {
+            ac if ac > 70 => {
+                cells.push(Cell::Alive);
+                cn_map.insert(i, get_cell_neighbours(&i, x, y));
+            }
+            _ => {
+                cells.push(Cell::Dead);
+                cn_map.insert(i, get_cell_neighbours(&i, x, y));
+            }
+        }
+    }
+
+    let res = Cells {
+        cells_neighbours_map: cn_map,
+        game_cells: cells,
+    };
 
     res
 }

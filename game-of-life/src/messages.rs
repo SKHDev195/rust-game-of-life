@@ -1,9 +1,4 @@
-pub enum CellMessages {
-    Kill,
-    Revive,
-    Preserve,
-}
-
+#[derive(Debug)]
 pub enum FieldMessages {
     Update,
 }
