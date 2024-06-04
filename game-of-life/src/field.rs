@@ -22,10 +22,10 @@ impl Application for Field {
     type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<FieldMessages>) {
-        let cells = fill_cells_neighbours(&12, &10);
+        let cells = fill_cells_neighbours(&400, &300);
         let res = Self {
-            x: 12,
-            y: 10,
+            x: 400,
+            y: 300,
             cells: cells,
         };
         (res, Command::none())
@@ -62,17 +62,6 @@ impl Application for Field {
         iced::time::every(Duration::from_millis(500)).map(|_| FieldMessages::Update)
     }
 }
-
-// pub fn render_field(cells: &Vec<Cell>, y: &i32) {
-//     for (i, cell) in cells.iter().enumerate() {
-//         cell::show_cell_basic(cell);
-
-//         if (i as i32 + 1) % *y == 0 {
-//             print!("\n");
-//         }
-//     }
-//     println!();
-// }
 
 fn update_field(cells_neighbours: &mut Cells) {
     for i in 0..cells_neighbours.game_cells.len() {
@@ -120,7 +109,7 @@ fn fill_cells_neighbours(x: &i32, y: &i32) -> Cells {
     for i in 0..num_of_cells {
         let alive_chance: i32 = rand::thread_rng().gen_range(0..100);
         match alive_chance {
-            ac if ac > 70 => {
+            ac if ac > 80 => {
                 cells.push(Cell::Alive);
                 cn_map.insert(i, get_cell_neighbours(&i, x, y));
             }

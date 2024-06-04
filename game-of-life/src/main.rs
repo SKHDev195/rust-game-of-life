@@ -1,7 +1,8 @@
-mod cell;
-mod cells;
-mod field;
-mod messages;
+pub mod cell;
+pub mod cells;
+pub mod field;
+pub mod messages;
+pub mod start_screen;
 
 use field::Field;
 use iced::{Application, Settings};
