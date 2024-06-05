@@ -1,4 +1,4 @@
-use iced::widget::{checkbox, column, pick_list, row, text_input, Button, Text, TextInput};
+use iced::widget::{checkbox, column, pick_list, row, text_input, Button, Column, Text, TextInput};
 use iced::{Command, Element, Renderer};
 
 #[derive(Debug, Clone)]
@@ -30,13 +30,15 @@ impl StartingScreenController {
         }
     }
 
-    pub fn view(&self) -> Element<'_, StartingScreenMessage, Renderer> {
+    pub fn view(&self) -> Element<StartingScreenMessage> {
         let column_input = TextInput::new("Number of columns", &self.x.to_string())
             .on_input(StartingScreenMessage::SetColums);
         let row_input = TextInput::new("Number of rows", &self.y.to_string())
             .on_input(StartingScreenMessage::SetRows);
         let start_game_button = Button::new(Text::new("Start Game"));
-
-        let settings_column = 
+        column![column_input, row_input, start_game_button]
+            .spacing(15)
+            .align_items(iced::Alignment::Center)
+            .into()
     }
 }
