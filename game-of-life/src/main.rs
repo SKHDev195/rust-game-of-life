@@ -1,12 +1,11 @@
 pub mod cell;
 pub mod cells;
-pub mod field;
+pub mod field_screen;
 pub mod gui;
-pub mod messages;
 pub mod start_screen;
 
-use field::Field;
+use gui::GameGui;
 use iced::{Application, Settings};
 fn main() -> iced::Result {
-    Field::run(Settings::default())
+    GameGui::run(Settings::default())
 }

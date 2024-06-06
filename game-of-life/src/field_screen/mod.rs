@@ -1,46 +1,40 @@
 use std::collections::HashMap;
 
-use crate::{cell::Cell, cells::get_cell_neighbours, cells::Cells, messages::FieldMessages};
+use crate::{cell::Cell, cells::get_cell_neighbours, cells::Cells};
 use iced::{
-    executor,
-    time::{self, Duration},
     widget::{Column, Row},
-    Application, Command, Element, Sandbox, Subscription, Theme,
+    Command, Element,
 };
 use rand::Rng;
 
-pub struct Field {
+#[derive(Debug, Clone)]
+pub enum FieldScreenMessage {
+    Update,
+}
+
+pub struct FieldScreenController {
     pub(crate) x: i32,
     pub(crate) y: i32,
     pub(crate) cells: Cells,
 }
 
-impl Application for Field {
-    type Executor = executor::Default;
-    type Message = FieldMessages;
-    type Theme = Theme;
-    type Flags = ();
-
-    fn new(_flags: ()) -> (Self, Command<FieldMessages>) {
-        let cells = fill_cells_neighbours(&400, &300);
+impl FieldScreenController {
+    pub fn new(x: &i32, y: &i32) -> Self {
+        let cells = fill_cells_neighbours(x, y);
         let res = Self {
-            x: 400,
-            y: 300,
-            cells: cells,
+            x: *x,
+            y: *y,
+            cells,
         };
-        (res, Command::none())
+        res
     }
 
-    fn title(&self) -> String {
-        String::from("Game of Life")
-    }
-
-    fn update(&mut self, _message: FieldMessages) -> Command<FieldMessages> {
+    pub fn update(&mut self, _message: FieldScreenMessage) -> Command<FieldScreenMessage> {
         update_field(&mut self.cells);
         Command::none()
     }
 
-    fn view(&self) -> Element<FieldMessages> {
+    pub fn view(&self) -> Element<FieldScreenMessage> {
         let mut rows = Vec::new();
         let mut start_index: usize = 0;
         for _ in 0..self.y {
@@ -58,9 +52,9 @@ impl Application for Field {
             .into()
     }
 
-    fn subscription(&self) -> Subscription<FieldMessages> {
-        iced::time::every(Duration::from_millis(500)).map(|_| FieldMessages::Update)
-    }
+    // fn subscription(&self) -> Subscription<FieldScreenMessage> {
+    //     iced::time::every(Duration::from_millis(500)).map(|_| FieldScreenMessage::Update)
+    // }
 }
 
 fn update_field(cells_neighbours: &mut Cells) {
