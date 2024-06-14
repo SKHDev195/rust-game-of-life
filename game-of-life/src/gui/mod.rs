@@ -1,3 +1,5 @@
+use std::mem;
+
 use iced::{
     executor, multi_window,
     time::{self, Duration},
@@ -92,6 +94,10 @@ impl multi_window::Application for GameGui {
                 .expect("the field screen should not be empty")
                 .update(message)
                 .map(GuiMessage::FieldScreen),
+            GuiMessage::StopWarningWindow(StopWarningWindowMessage::StopGame) => {
+                self.active_screen = ActiveScreen::StartingScreen;
+                Command::none()
+            }
             GuiMessage::StopWarningWindow(message) => {
                 self.stop_warning_window
                     .as_mut()

@@ -40,9 +40,7 @@ impl StopWarningWindow {
         res
     }
 
-    pub fn update(&mut self, message: StopWarningWindowMessage) {
-        match message {
-            _ => mem::drop(self),
-        }
+    pub fn update(&self, _: StopWarningWindowMessage) -> Command<StopWarningWindowMessage> {
+        window::close(self.window_id)
     }
 }

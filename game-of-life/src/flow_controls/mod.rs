@@ -5,7 +5,9 @@ use iced::{
 
 use crate::field_screen::FieldScreenMessage;
 
-pub struct FlowControlsController {}
+pub struct FlowControlsController {
+    pause_button
+}
 
 impl FlowControlsController {
     pub fn new() -> Self {
