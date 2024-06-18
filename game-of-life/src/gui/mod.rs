@@ -1,10 +1,18 @@
-use iced::{executor, time::Duration, Application, Command, Renderer, Theme};
+use std::mem;
 
-use crate::{
-    field_screen::{self, FieldScreenController, FieldScreenMessage},
-    start_screen::{StartingScreenController, StartingScreenMessage},
+use iced::{
+    executor, multi_window,
+    time::{self, Duration},
+    window, Application, Command, Renderer, Size, Theme,
 };
 
+use crate::{
+    field_screen::{self, ActiveStatus, FieldScreenController, FieldScreenMessage},
+    start_screen::{StartingScreenController, StartingScreenMessage},
+    stop_warning_window::{self, StopWarningWindow, StopWarningWindowMessage},
+};
+
+#[derive(PartialEq)]
 enum ActiveScreen {
     StartingScreen,
     FieldScreen,
@@ -14,15 +22,17 @@ enum ActiveScreen {
 pub enum GuiMessage {
     StartingScreen(StartingScreenMessage),
     FieldScreen(FieldScreenMessage),
+    StopWarningWindow(StopWarningWindowMessage),
 }
 
 pub struct GameGui {
     starting_screen: StartingScreenController,
     field_screen: Option<FieldScreenController>,
+    stop_warning_window: Option<StopWarningWindow>,
     active_screen: ActiveScreen,
 }
 
-impl Application for GameGui {
+impl multi_window::Application for GameGui {
     type Executor = executor::Default;
     type Message = GuiMessage;
     type Theme = Theme;
@@ -35,12 +45,13 @@ impl Application for GameGui {
                 starting_screen,
                 field_screen: None,
                 active_screen: ActiveScreen::StartingScreen,
+                stop_warning_window: None,
             },
             Command::none(),
         )
     }
 
-    fn title(&self) -> String {
+    fn title(&self, _window: window::Id) -> String {
         let program_title = String::from("Game of Life");
         program_title
     }
@@ -59,34 +70,82 @@ impl Application for GameGui {
                 .starting_screen
                 .update(message)
                 .map(GuiMessage::StartingScreen),
+            GuiMessage::FieldScreen(FieldScreenMessage::DisplayWarningWindow) => {
+                let _ = self
+                    .field_screen
+                    .as_mut()
+                    .expect("the field screen should not be empty")
+                    .update(FieldScreenMessage::DisplayWarningWindow);
+                self.stop_warning_window = Some(StopWarningWindow::new());
+                let (id, window) = window::spawn(window::Settings {
+                    size: Size::new(300.0, 200.0),
+                    position: window::Position::Centered,
+                    visible: true,
+                    resizable: false,
+                    level: window::Level::AlwaysOnTop,
+                    ..Default::default()
+                });
+                self.stop_warning_window.as_mut().unwrap().window_id = id;
+                window
+            }
             GuiMessage::FieldScreen(message) => self
                 .field_screen
                 .as_mut()
                 .expect("the field screen should not be empty")
                 .update(message)
                 .map(GuiMessage::FieldScreen),
+            GuiMessage::StopWarningWindow(StopWarningWindowMessage::StopGame) => {
+                self.active_screen = ActiveScreen::StartingScreen;
+                self.stop_warning_window
+                    .as_mut()
+                    .expect("the warning window should not be empty")
+                    .update(StopWarningWindowMessage::StopGame)
+                    .map(GuiMessage::StopWarningWindow)
+            }
+            GuiMessage::StopWarningWindow(message) => self
+                .stop_warning_window
+                .as_mut()
+                .expect("the warning window should not be empty")
+                .update(message)
+                .map(GuiMessage::StopWarningWindow),
         }
     }
 
-    fn view(&self) -> iced::Element<'_, GuiMessage, Theme, Renderer> {
-        match self.active_screen {
-            ActiveScreen::StartingScreen => {
-                self.starting_screen.view().map(GuiMessage::StartingScreen)
-            }
-            ActiveScreen::FieldScreen => self
-                .field_screen
+    fn view(&self, window_id: window::Id) -> iced::Element<'_, GuiMessage, Theme, Renderer> {
+        if self
+            .stop_warning_window
+            .as_ref()
+            .map_or(false, |w| w.window_id == window_id)
+        {
+            self.stop_warning_window
                 .as_ref()
-                .expect("the field screen should not be empty")
+                .unwrap()
                 .view()
-                .map(GuiMessage::FieldScreen),
+                .map(GuiMessage::StopWarningWindow)
+        } else {
+            match self.active_screen {
+                ActiveScreen::StartingScreen => {
+                    self.starting_screen.view().map(GuiMessage::StartingScreen)
+                }
+                ActiveScreen::FieldScreen => self
+                    .field_screen
+                    .as_ref()
+                    .expect("the field screen should not be empty")
+                    .view()
+                    .map(GuiMessage::FieldScreen),
+            }
         }
     }
 
     fn subscription(&self) -> iced::Subscription<GuiMessage> {
-        match self.active_screen {
-            ActiveScreen::FieldScreen => iced::time::every(Duration::from_millis(200))
-                .map(|_| GuiMessage::FieldScreen(FieldScreenMessage::Update)),
-            _ => iced::Subscription::none(),
+        if self.active_screen == ActiveScreen::FieldScreen {
+            match self.field_screen.as_ref().unwrap().active_status {
+                ActiveStatus::Paused => iced::Subscription::none(),
+                ActiveStatus::Playing => time::every(Duration::from_millis(200))
+                    .map(|_| GuiMessage::FieldScreen(FieldScreenMessage::Update)),
+            }
+        } else {
+            iced::Subscription::none()
         }
     }
 }

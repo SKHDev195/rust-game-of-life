@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::cell::Cell;
 
+#[derive(Clone)]
 pub struct Cells {
     pub cells_neighbours_map: HashMap<i32, [i32; 8]>,
     pub game_cells: Vec<Cell>,

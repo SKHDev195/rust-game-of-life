@@ -8,7 +8,7 @@ use iced::{
 
 use crate::field_screen::FieldScreenMessage;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Cell {
     Dead,
     Alive,
