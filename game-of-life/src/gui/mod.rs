@@ -7,6 +7,7 @@ use iced::{
 };
 
 use crate::{
+    app_theme::CustomTheme,
     field_screen::{self, ActiveStatus, FieldScreenController, FieldScreenMessage},
     start_screen::{StartingScreenController, StartingScreenMessage},
     stop_warning_window::{self, StopWarningWindow, StopWarningWindowMessage},
@@ -35,7 +36,7 @@ pub struct GameGui {
 impl multi_window::Application for GameGui {
     type Executor = executor::Default;
     type Message = GuiMessage;
-    type Theme = Theme;
+    type Theme = CustomTheme;
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
