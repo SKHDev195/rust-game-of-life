@@ -15,7 +15,7 @@ pub struct StartingScreenController {
 
 impl StartingScreenController {
     pub fn new() -> Self {
-        Self { x: 10, y: 10 }
+        Self { x: 50, y: 50 }
     }
 
     pub fn update(&mut self, message: StartingScreenMessage) -> Command<StartingScreenMessage> {

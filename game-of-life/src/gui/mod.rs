@@ -71,11 +71,11 @@ impl multi_window::Application for GameGui {
                 .update(message)
                 .map(GuiMessage::StartingScreen),
             GuiMessage::FieldScreen(FieldScreenMessage::DisplayWarningWindow) => {
-                // self.field_screen
-                //     .as_mut()
-                //     .expect("the field screen should not be empty")
-                //     .update(FieldScreenMessage::DisplayWarningWindow)
-                //     .map(GuiMessage::FieldScreen);
+                let _ = self
+                    .field_screen
+                    .as_mut()
+                    .expect("the field screen should not be empty")
+                    .update(FieldScreenMessage::DisplayWarningWindow);
                 self.stop_warning_window = Some(StopWarningWindow::new());
                 let (id, window) = window::spawn(window::Settings {
                     size: Size::new(300.0, 200.0),
@@ -96,15 +96,18 @@ impl multi_window::Application for GameGui {
                 .map(GuiMessage::FieldScreen),
             GuiMessage::StopWarningWindow(StopWarningWindowMessage::StopGame) => {
                 self.active_screen = ActiveScreen::StartingScreen;
-                Command::none()
-            }
-            GuiMessage::StopWarningWindow(message) => {
                 self.stop_warning_window
                     .as_mut()
                     .expect("the warning window should not be empty")
-                    .update(message);
-                Command::none()
+                    .update(StopWarningWindowMessage::StopGame)
+                    .map(GuiMessage::StopWarningWindow)
             }
+            GuiMessage::StopWarningWindow(message) => self
+                .stop_warning_window
+                .as_mut()
+                .expect("the warning window should not be empty")
+                .update(message)
+                .map(GuiMessage::StopWarningWindow),
         }
     }
 
